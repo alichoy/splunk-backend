@@ -38,22 +38,14 @@ exports.handler = async (event) => {
     });
 };*/
 
-const mysql = require('mysql');
-
-const db = mysql.createConnection({
-    host: 'awsmysql.czywkesuu5ce.us-east-1.rds.amazonaws.com',
-    port: '3306',
-    database: 'MySplunkApp',
-    user: 'admin',
-    password: 'Stella6797',
-});
+const pool = require('../db');
 
 exports.handler = async (event) => {
     return new Promise((resolve, reject) => {
-        // Connect to the database
-        db.connect((connectErr) => {
-            if (connectErr) {
-                db.end(); // Close the database connection
+        // Acquire a connection from the pool
+        pool.getConnection((err, connection) => {
+            if (err) {
+                // Handle connection error
                 reject({
                     statusCode: 500,
                     headers: {
@@ -66,10 +58,13 @@ exports.handler = async (event) => {
                 return;
             }
 
-            // Query the reports table
-            db.query('SELECT * FROM reports', (queryErr, results) => {
+            // Query the database using the acquired connection
+            connection.query('SELECT * FROM reports', (queryErr, results) => {
+                // Release the connection back to the pool
+                connection.release();
+
                 if (queryErr) {
-                    db.end(); // Close the database connection
+                    // Handle query error
                     reject({
                         statusCode: 500,
                         headers: {
@@ -80,7 +75,7 @@ exports.handler = async (event) => {
                         body: JSON.stringify({ error: 'Query error' }),
                     });
                 } else {
-                    db.end(); // Close the database connection
+                    // Resolve with the query results
                     resolve({
                         statusCode: 200,
                         headers: {
@@ -90,7 +85,6 @@ exports.handler = async (event) => {
                         },
                         body: JSON.stringify(results),
                     });
-                    
                 }
             });
         });

@@ -1,12 +1,4 @@
-const mysql = require('mysql');
-
-const db = mysql.createConnection({
-    host: 'awsmysql.czywkesuu5ce.us-east-1.rds.amazonaws.com',
-    port: '3306',
-    database: 'MySplunkApp',
-    user: 'admin',
-    password: 'Stella6797',
-});
+const pool = require('../db');
 
 exports.handler = async (event) => {
     const { app_id } = event.pathParameters;
@@ -39,6 +31,11 @@ exports.handler = async (event) => {
     if (updateFields.length === 0) {
         return {
             statusCode: 400,
+            headers: {
+                "Access-Control-Allow-Headers": "Cache-Control, Content-Language, Content-Type, Expires, Last-Modified, Pragma",
+                "Access-Control-Allow-Origin": "*",
+                "Access-Control-Allow-Methods": "OPTIONS,PUT"
+            },
             body: JSON.stringify({ error: 'No fields to update provided' }),
         };
     }
@@ -48,28 +45,51 @@ exports.handler = async (event) => {
     const updateParams = [...updateValues, app_id];
 
     return new Promise((resolve, reject) => {
-        db.connect((err) => {
+        // Execute the update query using the acquired connection from the pool
+        pool.getConnection((err, connection) => {
             if (err) {
+                // Handle connection error
                 reject({
                     statusCode: 500,
+                    headers: {
+                        "Access-Control-Allow-Headers": "Cache-Control, Content-Language, Content-Type, Expires, Last-Modified, Pragma",
+                        "Access-Control-Allow-Origin": "*",
+                        "Access-Control-Allow-Methods": "OPTIONS,PUT"
+                    },
                     body: JSON.stringify({ error: 'Database connection error' }),
                 });
-            } else {
-                db.query(updateQuery, updateParams, (queryErr, results) => {
-
-                    if (queryErr) {
-                        reject({
-                            statusCode: 500,
-                            body: JSON.stringify({ error: 'Update error' }),
-                        });
-                    } else {
-                        resolve({
-                            statusCode: 200,
-                            body: JSON.stringify({ message: 'Update successful' }),
-                        });
-                    }
-                });
+                return;
             }
+
+            // Execute the update query using the acquired connection
+            connection.query(updateQuery, updateParams, (queryErr, results) => {
+                // Release the connection back to the pool
+                connection.release();
+
+                if (queryErr) {
+                    // Handle query error
+                    reject({
+                        statusCode: 500,
+                        headers: {
+                            "Access-Control-Allow-Headers": "Cache-Control, Content-Language, Content-Type, Expires, Last-Modified, Pragma",
+                            "Access-Control-Allow-Origin": "*",
+                            "Access-Control-Allow-Methods": "OPTIONS,PUT"
+                        },
+                        body: JSON.stringify({ error: 'Update error' }),
+                    });
+                } else {
+                    // Resolve with success message
+                    resolve({
+                        statusCode: 200,
+                        headers: {
+                            "Access-Control-Allow-Headers": "Cache-Control, Content-Language, Content-Type, Expires, Last-Modified, Pragma",
+                            "Access-Control-Allow-Origin": "*",
+                            "Access-Control-Allow-Methods": "OPTIONS,PUT"
+                        },
+                        body: JSON.stringify({ message: 'Update successful' }),
+                    });
+                }
+            });
         });
     });
 };
