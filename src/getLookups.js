@@ -7,15 +7,7 @@ exports.handler = async (event) => {
         pool.getConnection((err, connection) => {
             if (err) {
                 // Handle connection error
-                reject({
-                    statusCode: 500,
-                    headers: {
-                        "Access-Control-Allow-Headers": "Cache-Control, Content-Language, Content-Type, Expires, Last-Modified, Pragma",
-                        "Access-Control-Allow-Origin": "*",
-                        "Access-Control-Allow-Methods": "OPTIONS,GET"
-                    },
-                    body: JSON.stringify({ error: 'Database connection error' }),
-                });
+                reject(JSON.stringify("DB connection error.", err));
                 return;
             }
 
@@ -26,24 +18,11 @@ exports.handler = async (event) => {
 
                 if (queryErr) {
                     // Handle query error
-                    reject({
-                        statusCode: 500,
-                        headers: {
-                            "Access-Control-Allow-Headers": "Cache-Control, Content-Language, Content-Type, Expires, Last-Modified, Pragma",
-                            "Access-Control-Allow-Origin": "*",
-                            "Access-Control-Allow-Methods": "OPTIONS,GET"
-                        },
-                        body: JSON.stringify({ error: 'Query error' }),
-                    });
+                    reject(JSON.stringify("Query error", err));
                 } else {
                     // Resolve with success response
                     resolve({
                         statusCode: 200,
-                        headers: {
-                            "Access-Control-Allow-Headers": "Cache-Control, Content-Language, Content-Type, Expires, Last-Modified, Pragma",
-                            "Access-Control-Allow-Origin": "*",
-                            "Access-Control-Allow-Methods": "OPTIONS,GET"
-                        },
                         body: JSON.stringify(results),
                     });
                 }
