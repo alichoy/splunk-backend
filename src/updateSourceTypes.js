@@ -31,17 +31,12 @@ exports.handler = async (event) => {
     if (updateFields.length === 0) {
         return {
             statusCode: 400,
-            headers: {
-                "Access-Control-Allow-Headers": "Cache-Control, Content-Language, Content-Type, Expires, Last-Modified, Pragma",
-                "Access-Control-Allow-Origin": "*",
-                "Access-Control-Allow-Methods": "OPTIONS,PUT"
-            },
             body: JSON.stringify({ error: 'No fields to update provided' }),
         };
     }
 
     // Execute SQL update query
-    const updateQuery = `UPDATE source_types SET ${updateFields.join(', ')} WHERE source_type_id = ?`;
+    const updateQuery = `UPDATE source_types SET ${updateFields.join(', ')} WHERE id = ?`;
     const updateParams = [...updateValues, source_type_id];
 
     return new Promise((resolve, reject) => {
@@ -49,15 +44,7 @@ exports.handler = async (event) => {
         pool.getConnection((err, connection) => {
             if (err) {
                 // Handle connection error
-                reject({
-                    statusCode: 500,
-                    headers: {
-                        "Access-Control-Allow-Headers": "Cache-Control, Content-Language, Content-Type, Expires, Last-Modified, Pragma",
-                        "Access-Control-Allow-Origin": "*",
-                        "Access-Control-Allow-Methods": "OPTIONS,PUT"
-                    },
-                    body: JSON.stringify({ error: 'Database connection error' }),
-                });
+                reject(JSON.stringify("DB connection error.", err));
                 return;
             }
 
@@ -68,24 +55,11 @@ exports.handler = async (event) => {
 
                 if (queryErr) {
                     // Handle query error
-                    reject({
-                        statusCode: 500,
-                        headers: {
-                            "Access-Control-Allow-Headers": "Cache-Control, Content-Language, Content-Type, Expires, Last-Modified, Pragma",
-                            "Access-Control-Allow-Origin": "*",
-                            "Access-Control-Allow-Methods": "OPTIONS,PUT"
-                        },
-                        body: JSON.stringify({ error: 'Update error' }),
-                    });
+                    reject(JSON.stringify("Update error", err));
                 } else {
                     // Resolve with success message
                     resolve({
                         statusCode: 200,
-                        headers: {
-                            "Access-Control-Allow-Headers": "Cache-Control, Content-Language, Content-Type, Expires, Last-Modified, Pragma",
-                            "Access-Control-Allow-Origin": "*",
-                            "Access-Control-Allow-Methods": "OPTIONS,PUT"
-                        },
                         body: JSON.stringify({ message: 'Update successful' }),
                     });
                 }

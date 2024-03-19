@@ -5,6 +5,21 @@ provider:
   name: aws
   runtime: nodejs18.x
   region: us-east-1
+  httpApi:
+    cors: 
+      allowedOrigins:
+        - http://alis-macbook-pro.local:8000
+      allowedHeaders:
+        - Content-Type
+        - Authorization
+      allowedMethods:
+        - GET
+        - PUT
+        - OPTIONS 
+      allowCredentials: true
+      exposedResponseHeaders:
+        - Special-Response-Header
+      maxAge: 6000
 
 functions:
   #------- Reports ---------
@@ -35,6 +50,13 @@ functions:
     events:
       - httpApi:
           path: /apps/{app_id} 
+          method: put
+  
+  newUpdateApps:
+    handler: src/newUpdateApps.handler 
+    events:
+      - httpApi:
+          path: /newapps/{app_id} 
           method: put
 
   #------- Categories ---------
