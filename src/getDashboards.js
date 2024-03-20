@@ -11,7 +11,7 @@ exports.handler = async (event) => {
             }
 
             // Execute the query using the acquired connection
-            connection.query('SELECT * FROM dashboards', (queryErr, results) => {
+            connection.query('SELECT * FROM dashboards WHERE disabled = 0', (queryErr, results) => {
                 // Release the connection back to the pool
                 connection.release();
 

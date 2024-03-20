@@ -107,7 +107,7 @@ exports.handler = async (event) => {
             }
 
             // Query the database using the acquired connection
-            connection.query('SELECT * FROM reports', (queryErr, results) => {
+            connection.query('SELECT * FROM reports WHERE disabled = 0', (queryErr, results) => {
                 // Release the connection back to the pool
                 connection.release();
 
