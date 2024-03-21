@@ -97,6 +97,13 @@ functions:
       - httpApi:
           path: /host 
           method: get
+
+  updateHosts:
+    handler: src/updateHosts.handler 
+    events:
+      - httpApi:
+          path: /host/{host_id} 
+          method: put
   
   #------- Alerts ---------
   getAlerts:
@@ -120,6 +127,13 @@ functions:
       - httpApi:
           path: /index
           method: get
+
+  updateIndexes:
+    handler: src/updateIndexes.handler 
+    events:
+      - httpApi:
+          path: /index/{index_id} 
+          method: put
 
   #------- Lookups ---------
   getLookups:
